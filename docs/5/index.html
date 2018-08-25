@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>5</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    Observable.of(5)
+      .mergeMap(value => {
+        // [1,2,3,4,5]をemitするObservableと500ms毎に値をemitするObservableを
+        // zipで結合する。zipは結合した全てのObservableが値をemitした後に
+        // emitした値を配列にする。
+        // そのため、今回は500ms毎にemitされる配列は以下のようになる。
+        // [1, 0]
+        // [2, 1]
+        // [3, 2]
+        // [4, 3]
+        // [5, 4]
+        return Observable.range(1, value).zip(Observable.interval(500));
+      })
+      .map(values => values[0])
+      .subscribe(value => console.log(value));
+    // 500ms毎に、以下が一つずつ出力される
+    // => 1
+    // => 2
+    // => 3
+    // => 4
+    // => 5
+  </script>
+</body>
+
+</html>

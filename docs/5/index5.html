@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>5</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const subject = new Rx.Subject();
+
+    subject
+      .switchMap(obj => httpGet(obj.url, obj.delay))
+      .map(res => JSON.parse(res).ResultData)
+      .subscribe(value => console.log(value));
+
+    subject.next({ url: 'http://foo', delay: 500 })
+    subject.next({ url: 'http://bar', delay: 300 })
+    subject.next({ url: 'http://baz', delay: 100 })
+
+    function httpGet(url, delay) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const obj = { ResultData: `${url} -> resolved` }
+
+          resolve(JSON.stringify(obj));
+        }, delay)
+      })
+    }
+  </script>
+</body>
+
+</html>

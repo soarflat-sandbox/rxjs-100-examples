@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>5</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    Observable.of(5)
+      .mergeMap(value => Promise.resolve(value))
+      // 以下のように書かなくても良い
+      // .mergeMap(value => Observable.fromPromise(Promise.resolve(value))
+      .subscribe(value => console.log(value));
+  </script>
+</body>
+
+</html>

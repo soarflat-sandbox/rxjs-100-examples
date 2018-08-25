@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>4</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    const source$ = Observable
+      .interval(1000)
+      .take(10)
+      .map(x => x * 100);
+
+    function promiseDelay(ms) {
+      return new Promise(resolve => {
+        setTimeout(() => resolve('done'), ms);
+      })
+    }
+
+    source$
+      .switchMap(x => promiseDelay(x))
+      .subscribe(x => console.log(x));
+
+    source$
+      .switchMap(promiseDelay)
+      .subscribe(x => console.log(x));
+  </script>
+</body>
+
+</html>
