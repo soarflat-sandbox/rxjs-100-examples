@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>2</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    const stream1 = Observable.interval(1000).mapTo('Stream 1').take(2);
+    const stream2 = Observable.interval(1200).mapTo('Stream 2').take(2);
+    const stream3 = Observable.timer(0, 1000).mapTo('Stream 3').take(2);
+
+    Observable
+      .merge(
+        stream1,
+        stream2,
+        stream3,
+        // concurrent
+        2
+      )
+      .subscribe(console.log);
+
+      // concurrentを2にしているため、subscribe時に2つのStreamから値をemitする
+      // 今回の場合、まずstream1とstream2から値が流れてくる。
+      // どちらかのStreamが完了しない限りstream3からは値は流れない。
+      //
+      // Stream 1 -> after 1000ms
+      // Stream 2 -> after 1200ms
+      // Stream 1 -> after 2000ms
+      //
+      // stream1が完了したら、stream3から値が流れ始める
+      //
+      // Stream 3 -> after 0 ms
+      // Stream 2 -> after 400 ms (2400ms from beginning)
+      // Stream 3 -> after 1000ms
+  </script>
+</body>
+
+</html>

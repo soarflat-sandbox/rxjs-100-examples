@@ -1,0 +1,11 @@
+{
+  "name": "rxjs-100-examples",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "http-server docs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^0.11.1"
+  }
+}
