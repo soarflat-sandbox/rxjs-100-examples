@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>3</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <input type="text" id="input">
+  <button id="stopStream">stopStream</button>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // inputイベントをObservableに変換する
+    const input = Rx.Observable
+      .fromEvent(document.getElementById('input'), 'input');
+
+    input
+      .filter(event => event.target.value.length > 2)
+      .map(event => event.target.value)
+      .subscribe(value => console.log(value));
+
+    input
+      .delay(200)
+      .map(event => event.target.value)
+      .subscribe(value => console.log(value));
+
+    input
+      .throttleTime(200)
+      .map(event => event.target.value)
+      .subscribe(value => console.log(value))
+
+    input
+      .debounceTime(200)
+      .map(event => event.target.value)
+      .subscribe(value => console.log(value));
+
+    // 3回イベントを送信後、ストリームのイベントを止める（送信させない）
+    input
+      .take(3)
+      .map(event => event.target.value)
+      .subscribe(value => console.log('take3', value));
+
+    const stopStream = Rx.Observable
+      .fromEvent(document.getElementById('stopStream'), 'click');
+    input.takeUntil(stopStream)
+      .map(event => event.target.value)
+      .subscribe(value => console.log('takeUntil click stopStream', value));
+  </script>
+</body>
+
+</html>
