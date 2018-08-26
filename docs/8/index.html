@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>8 COLD Observable のサンプル</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // Observable は COLD であり、subscribe していないので値は流れない。
+    // console 出力もされない。
+    const clock$ = Rx.Observable
+      .interval(1000)
+      .take(5)
+      .map(x => x + 1)
+      .do(x => console.log(`do: ${x}`));
+
+    const clock2$ = Rx.Observable
+      .interval(1000)
+      .take(5)
+      .map(x => x + 1)
+      .do(x => console.log(`do: ${x}`));
+
+    // 一つの Observable に対して複数 subscribe した場合、
+    // それぞれに対して個別に Observable が複製されて割り当てられる。
+    // そのため、以下の二つの Observer はそれぞれ新しい値が流れる。
+    //
+    // Observer A
+    clock2$.subscribe(x => console.log(` A: ${x}`));
+    // Observer B
+    setTimeout(() => clock2$.subscribe(x => console.log(`    B: ${x}`)), 2500);
+  </script>
+</body>
+
+</html>

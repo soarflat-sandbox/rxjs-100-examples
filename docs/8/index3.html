@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>8-3 HOT Observable のサンプルOT</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // public と connect Oprrator は ConnectableObservable の Oprator
+    // ConnectableObservable は `Observable` を継承したクラスでHOT な性質の Observable
+    // refCount は Observer が一つ以上ある間は connect 状態を維持し、
+    // Observer が 0になると connect 状態を解除する Observable インスタンスを返す。
+    const count$ = Rx.Observable
+      .from([1, 2, 3, 4, 5])
+      .do(x => console.log(`do: ${x}`))
+      .map(x => x + 1)
+      .publish()
+      .refCount();
+
+    // Observer A
+    count$.subscribe(
+      x => console.log(`Observer A: ${x}`),
+      error => console.log(error),
+      () => console.log('---- A is completed. ----')
+    );
+
+    // Observer B
+    // Observer A によって全ての値が流れきってしまっているので 
+    // B は何も受け取ることが出来ずに complete イベントだけを発火させて終了。
+    setTimeout(() => {
+      count$.subscribe(
+        x => console.log(`    Observer B: ${x}`),
+        error => console.log(error),
+        () => console.log('---- B is completed. ----')
+      );
+    }, 2500);
+  </script>
+</body>
+
+</html>

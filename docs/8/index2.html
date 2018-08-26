@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>8-2 HOT Observable のサンプル</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // publish Operator で Observable を COLD から HOT に変換する。
+    const clock$ = Rx.Observable
+      .interval(1000)
+      .take(5)
+      .do(x => console.log(`do: ${x}`))
+      .map(x => x + 1)
+      .publish();
+
+    // connect Operator を呼び出すとObservableから値が流れる。
+    clock$.connect();
+
+    // Observer B
+    // clock$.connect() を実行してから 2.5秒後に Observer B に値が流れ始める。
+    // そのため、3 から値が流れる。
+    setTimeout(() => {
+      clock$
+        .map(x => x * 10)
+        .subscribe(x => console.log(`    B: ${x}`));
+    }, 2500);
+    // do: 0
+    // do: 1
+    // do: 2
+    //     B: 30
+    // do: 3
+    //     B: 40
+    // do: 4
+    //     B: 50
+  </script>
+</body>
+
+</html>
