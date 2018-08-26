@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>7</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <button id="do">button for do</button>
+  <button id="delay">button for delay</button>
+  <button id="switch">button for switch</button>
+  <div id="throttle" style="width: 100px;height: 100px;border: 1px solid;">
+    <p>throttle area</p>
+  </div>
+  <div id="debounce" style="width: 100px;height: 100px;border: 1px solid;">
+    <p>debounce area</p>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    /**
+     * Observable.do
+     */
+    const doButton = document.getElementById('do');
+
+    Rx.Observable
+      .fromEvent(doButton, 'click')
+      .do(e => console.log(e.type))
+      .map(e => e.clientX)
+      .subscribe(console.log);
+
+    /**
+     * Observable.never
+     */
+    const info = () => {
+      console.log('Will not be called.');
+    };
+
+    // Observable.never 何も値を流さない Observable。next も complete 発火しない。
+    // テスト目的や他の Observable との合成する必要がある時などで利用する
+    Rx.Observable
+      .never()
+      .startWith('start streaming.')
+      .subscribe(
+        x => console.log(x),
+        error => info(),
+        () => info()
+      );
+
+    /**
+     * Observable.delay
+     */
+    const delayButton = document.getElementById('delay');
+
+    Rx.Observable
+      .fromEvent(delayButton, 'click')
+      .delay(1000)
+      .mapTo(1)
+      .scan((acc, val) => acc + val, 0)
+      .subscribe(console.log);
+
+    /**
+     * Observable.switch
+     */
+    const switchButton = document.getElementById('switch');
+
+    Rx.Observable
+      .fromEvent(switchButton, 'click')
+      .mapTo(1)
+      .scan((acc, val) => acc + val, 0)
+      .map(val => Rx.Observable.interval(1000).take(5).map(x => x + val))
+      .switch()
+      .subscribe(
+        x => console.log(x),
+        error => console.log(error),
+        () => console.log('-------- completed!!! --------')
+      );
+
+    /**
+     * Observable.throttle
+     */
+    Rx.Observable
+      .fromEvent(document.getElementById('throttle'), 'mousemove')
+      .throttle(() => Rx.Observable.interval(1000))
+      // ↑は以下のように書いても同じ
+      //.throttleTime(1000)
+      .subscribe(
+        e => console.log(`x: ${e.clientX}, y: ${e.clientY}`),
+        error => console.log(error),
+        () => console.log('-------- completed!!! --------')
+      );
+
+    /**
+     * Observable.debounce
+     */
+    Rx.Observable
+      .fromEvent(document.getElementById('debounce'), 'mousemove')
+      .debounce(() => Rx.Observable.interval(1000))
+      .subscribe(
+        e => console.log(`x: ${e.clientX}, y: ${e.clientY}`),
+        error => console.log(error),
+        () => console.log('-------- completed!!! --------')
+      );
+
+    /**
+     * Observable.partition
+     * Observable を二つに分割する Oprrator。
+     * filter のように任意の関数を実行して
+     * true となる値と false となる値の Observable を配列で返す
+     * @return [true を返す Observable, false を返す Observable];
+     */
+    const [events, odds] = Rx.Observable
+      .from([1, 2, 3, 4, 5, 6])
+      .partition(val => val % 2 == 0);
+
+    Rx.Observable
+      .merge(
+        events.map(val => `Even: ${val}`),
+        odds.map(val => `Odd: ${val}`)
+      )
+      .subscribe(
+        x => console.log(x),
+        error => console.log(error),
+        () => console.log('--- "Observable.partition" completed!!! ---')
+      );
+
+    const [success, error] = Rx.Observable
+      .from([1, 2, 3, 4, 5, 6])
+      .map(val => {
+        if (val > 3) {
+          throw `${val} greater than 3!!!`;
+        }
+        return { success: val };
+      })
+      .catch(val => Rx.Observable.of({ error: val }))
+      .partition(res => res.success);
+
+    Rx.Observable
+      .merge(
+        success.map(val => `Success! ${val}`),
+        error.map(val => `Error! ${val.error}`)
+      )
+      .subscribe(
+        x => console.log(x),
+        error => console.log(error),
+        () => console.log('--- "Observable.partition" completed!!! ---')
+      );
+  </script>
+</body>
+
+</html>
