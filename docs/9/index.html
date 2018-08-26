@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>9</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Who to follow</h2>
+      <button id="refresh">Refresh</button>
+    </div>
+    <ul class="suggestions">
+      <li id="suggestion1">
+        <img />
+        <a href="#" target="_blank" class="username">this will not be displayed</a>
+        <button class="close close1">x</button>
+      </li>
+      <li id="suggestion2">
+        <img />
+        <a href="#" target="_blank" class="username">neither this</a>
+        <button class="close close2">x</button>
+      </li>
+      <li id="suggestion3">
+        <img />
+        <a href="#" target="_blank" class="username">nor this</a>
+        <button class="close close3">x</button>
+      </li>
+    </ul>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.min.js"></script>
+  <script>
+    const refreshButton = document.getElementById('refresh');
+    const refreshClick$ = Rx.Observable.fromEvent(refreshButton, 'click');
+
+    // リフレッシュボタンをクリック時にランダムなパラメータでAPI をコールして
+    // レスポンスを emit（流す）Observable。
+    // `startWith` を指定しているので、ボタンをクリックしなくても、初回だけ値が emit される。
+    const response$ = refreshClick$
+      .startWith('startup click')
+      .map(() => Math.floor(Math.random() * 500))
+      .map(randomOffSet => `https://api.github.com/users?since=${randomOffSet}`)
+      .flatMap(requestUrl => Rx.Observable.fromPromise($.ajax({ url: requestUrl })));
+
+    const closeButton1 = document.querySelector('.close1');
+    const closeButton2 = document.querySelector('.close2');
+    const closeButton3 = document.querySelector('.close3');
+    const close1Click$ = Rx.Observable.fromEvent(closeButton1, 'click');
+    const close2Click$ = Rx.Observable.fromEvent(closeButton2, 'click');
+    const close3Click$ = Rx.Observable.fromEvent(closeButton3, 'click');
+
+    /**
+     * 以下を表現した Observable を生成する。
+     * 1.クローズボタンをクリック時、もしくはリフレッシュボタンをクリック時に
+     *   `response$`から流れてきた複数のユーザー情報からランダムに一つだけ流す。
+     * 2.リフレッシュボタンをクリック時に`null`を流す。
+     *   `null`を流す理由は、APIをコールしてレスポンスが返ってくるまでサジェスチョンエリアを非表示にしたいため。
+     *   （表示制御は`renderSuggestion()`で行われる。）
+     * 
+     * この Observable と `response$` に `startWith` を指定しているので
+     * ボタンをクリックしなくても、初回だけ値が emit される（`combineLatest`以降も値が流れる）。
+     * `response$`は COLD の Observable なため、生成した Observable の数だけ `response$`が複製される。
+     * つまり、生成した Observable によって、`response$`から流れてくる値が異なる
+     * （`response$`はランダムなパラメータでAPI をコールするため）。
+     */
+    function createSuggestion$(closeClick$) {
+      return closeClick$
+        .startWith('startup click')
+        .combineLatest(
+          response$,
+          // click は closeClick$ から流れてきた最新の値
+          // listUsers は response$ から流れてきた最新の値
+          (click, listUsers) => listUsers[Math.floor(Math.random() * listUsers.length)]
+        )
+        .merge(
+          refreshClick$.map(() => null)
+        )
+        .startWith(null);
+    }
+
+    const suggestion1$ = createSuggestion$(close1Click$);
+    const suggestion2$ = createSuggestion$(close2Click$);
+    const suggestion3$ = createSuggestion$(close3Click$);
+
+    function renderSuggestion(suggestedUser, selector) {
+      const suggestionEl = document.getElementById(selector);
+
+      if (suggestedUser === null) {
+        suggestionEl.style.visibility = 'hidden';
+      } else {
+        suggestionEl.style.visibility = 'visible';
+
+        const usernameEl = suggestionEl.querySelector('.username');
+        usernameEl.href = suggestedUser.html_url;
+        usernameEl.textContent = suggestedUser.login;
+
+        const imgEl = suggestionEl.querySelector('img');
+        imgEl.src = '';
+        imgEl.src = suggestedUser.avatar_url;
+      }
+    }
+
+    suggestion1$.subscribe(suggestedUser => renderSuggestion(suggestedUser, 'suggestion1'));
+    suggestion2$.subscribe(suggestedUser => renderSuggestion(suggestedUser, 'suggestion2'));
+    suggestion3$.subscribe(suggestedUser => renderSuggestion(suggestedUser, 'suggestion3'));
+  </script>
+</body>
+
+</html>

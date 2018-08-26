@@ -1,0 +1,46 @@
+body {
+  font-family: sans-serif;
+  padding: 10px;
+}
+h2 {
+  font-weight: bold;
+  display: inline-block;
+  margin: 0;
+}
+.refresh {
+  font-size: 80%;
+  margin-left: 10px;
+}
+.header {
+  background: #ececec;
+  padding: 10px;
+}
+.suggestions {
+  border: 1px solid #ececec;
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+li {
+  padding: 10px 5px;
+  border-bottom: 1px #ececec solid;
+}
+li:last-child {
+  border: 0;
+}
+li img {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+li .username {
+  display: inline-block;
+  position: relative;
+  bottom: 15px;
+  left: 5px;
+}
+li .close {
+  display: block;
+}
