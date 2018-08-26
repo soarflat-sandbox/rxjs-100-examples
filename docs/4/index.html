@@ -23,12 +23,18 @@
       })
     }
 
-    source$
-      .switchMap(x => promiseDelay(x))
-      .subscribe(x => console.log(x));
+    // source$
+    //   .switchMap(x => promiseDelay(x))
+    //   .subscribe(x => console.log(x));
 
-    source$
-      .switchMap(promiseDelay)
+    // // ↑は以下のようにも書ける
+    // source$
+    //   .switchMap(promiseDelay)
+    //   .subscribe(x => console.log(x));
+
+    Observable
+      .of(promiseDelay(100), promiseDelay(10000))
+      .mergeAll()
       .subscribe(x => console.log(x));
   </script>
 </body>

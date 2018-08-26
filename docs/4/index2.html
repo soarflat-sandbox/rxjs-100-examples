@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>4-2</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    function getErroringPromise() {
+      console.log('getErroringPromise called');
+      return Promise.reject(new Error('sad'));
+    }
+
+    Observable
+      // Observable.defer()でプロミスを生成する関数（今回はgetErroringPromise）を
+      // ラップするとObservableのエラー時に再試行できる
+      .defer(getErroringPromise)
+      .retry(3)
+      .subscribe(x => console.log);
+    // => getErroringPromise called
+    // => getErroringPromise called
+    // => getErroringPromise called
+    // => getErroringPromise called
+    // => Uncaught Error: sad at a.getErroringPromise[as factory]
+  </script>
+</body>
+
+</html>

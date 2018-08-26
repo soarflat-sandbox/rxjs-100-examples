@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>4-6</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    // NOTE: using toPromise() is an antipattern except in cases 
+    // where you’re dealing with an API that expects a Promise, such as async-await
+
+    const source = Observable.interval(1000).take(3); // 0, 1, 2
+
+    // waits 3 seconds, then logs "2".
+    // because the observable takes 3 seconds to complete, and 
+    // the interval emits incremented numbers starting at 0
+    async function test() {
+      console.log(await source.toPromise());
+    }
+
+    test();
+  </script>
+</body>
+
+</html>

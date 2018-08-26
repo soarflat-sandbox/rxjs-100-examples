@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>4-3</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const Observable = Rx.Observable;
+
+    function promiseDelay(ms) {
+      return new Promise(resolve => {
+        setTimeout(() => resolve('done'), ms);
+      });
+    }
+
+    // Observable.defer()でasync functionを渡すと
+    // 戻り値を出力して完了するObservableを生成できる
+    Observable.defer(async function () {
+      const a = await promiseDelay(1000).then(() => 1);
+      const b = a + await promiseDelay(1000).then(() => 2);
+      return a + b + await promiseDelay(1000).then(() => 3);
+    })
+      .subscribe(console.log);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>4-5</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <button id="button">button</button>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // forEachでObservableをsubscribeすると、async-awaitの並行タスクを作成できる。
+    const Observable = Rx.Observable;
+
+    const button = document.getElementById('button');
+    const click$ = Observable.fromEvent(button, 'click');
+
+    async function doWork() {
+      await click$
+        .take(10)
+        .forEach((_, i) => console.log(`click ${i + 1}`));
+
+      return await fetch(
+        'notify/tenclicks',
+        { method: 'POST', body: Date.now() }
+      );
+    }
+
+    doWork();
+  </script>
+</body>
+
+</html>
