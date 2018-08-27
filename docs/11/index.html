@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>8 COLD Observable のサンプル</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // Run first test with a synchronous range stream.
+    setTimeout(() => {
+      console.group('With No Range Delay');
+      runTest(false);
+      setTimeout(console.groupEnd, 10);
+    });
+
+    // Run second test with an asynchronous range stream - this way, we can see what
+    // happens when the promises resolve before the stream.
+    setTimeout(() => {
+      console.group('With Range Delay (so that Promises resolve before range)');
+      runTest(true);
+      setTimeout(console.groupEnd, 50);
+    }, 500);
+
+    function runTest(useDelay) {
+      const one = Promise.resolve('One');
+      const two = Promise.resolve('Two');
+      const three$ = Rx.Observable.interval(100).take(3);
+
+      const fourAsRange$ = useDelay
+        ? Rx.Observable.range(1, 4).delay(1000)
+        : Rx.Observable.range(1, 4);
+
+      Promise
+        .all([one, two, three$.toPromise, fourAsRange$.toPromise])
+        .then(function handleResolve(values) {
+          console.log('Promise.all() Result:', values);
+        });
+
+      Rx.Observable
+        .combineLatest(one, two, three$, fourAsRange$)
+        .subscribe(function handleValue(values) {
+          console.log('Rx.Observable.combineLatest Result:', values);
+        });
+      // ↑は以下のようにも書ける（あえて書く必要はない）
+      // Rx.Observable
+      //   .combineLatest(
+      //     Rx.Observable.fromPromise(one),
+      //     Rx.Observable.fromPromise(two),
+      //     Rx.Observable.fromPromise(three),
+      //     fourAsRange$
+      //   )
+      //   .subscribe(function handleValue(values) {
+      //     console.log('Rx.Observable.combineLatest Result:', values);
+      //   });
+
+      // forkJoin は全ての Observable から値が流れる（complete が発火される）と
+      // それぞれの Observable の最新の値を配列にまとめて流す。
+      // そのため、Observable は４つだが、値が流れるのは一回だけ。
+      Rx.Observable
+        .forkJoin(one, two, three$, fourAsRange$)
+        .subscribe(function handleValue(values) {
+          console.log('Rx.Observable.forkJoin Result:', values);
+        });
+
+      // zip は全ての Observable から値が流れる（complete が発火される）と
+      // それぞれの Observable の最新の値を配列にまとめて流す。
+      // Observable から値を流す回数が異なると、最小回数からしか値は流れない。
+      // 今回の場合、各 Observable で値が流れる回数は以下の通りである。
+      // one: 一回
+      // two: 一回
+      // three$: 三回
+      // fourAsRange$: 四回
+      //
+      // three$ と fourAsRange$ は値が複数回流れるが、one と two が値が一回しか流れないため
+      // zip を実行して値が流れるのは一回だけである。
+      Rx.Observable
+        .zip(one, two, three$, fourAsRange$)
+        .subscribe(function handleValue(values) {
+          console.log('Rx.Observable.zip Result:', values);
+        });
+    }
+  </script>
+</body>
+
+</html>
