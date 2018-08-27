@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>12-2</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
+  <script>
+    function getData(data, ms) {
+      const d = $.Deferred();
+
+      setTimeout(() => {
+        if (Math.random() > 0.1) {
+          d.resolve(data);
+        } else {
+          d.reject('Error');
+        }
+      }, ms);
+
+      return d;
+    }
+
+    function getMultipleData(items) {
+      const d = $.Deferred();
+
+      Rx.Observable
+        .of(items)
+        .flatMap(v => Rx.Observable.forkJoin(
+          v.map((v, index) => getData(index * 100, v))
+          // エラーが発生しても error イベントは発火せず、エラーを含んだ全ての値が流したい場合は以下のように書く。
+          // v.map((v, index) => Rx.Observable
+          //   .fromPromise(getData(index * 100, v))
+          //   .catch(error => Rx.Observable.of(error)))
+        ))
+        .subscribe(
+          v => d.resolve(v),
+          error => d.reject(error),
+          () => console.log('--- completed!!! ---')
+        );
+
+      return d;
+    }
+
+    function check(items) {
+      return getMultipleData(items).then(d => {
+        return d;
+      });
+    }
+
+    const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }];
+    check(items)
+      .then(
+        v => {
+          console.log('done');
+          console.log(v);
+        },
+        error => {
+          console.log('fail')
+          console.log(error);
+        },
+      );
+  </script>
+</body>
+
+</html>
