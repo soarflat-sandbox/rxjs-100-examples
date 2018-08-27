@@ -31,8 +31,6 @@
       </li>
     </ul>
   </div>
-  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-    crossorigin="anonymous"></script>
   <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/4.1.0/rx.all.min.js"></script>
   <script>
@@ -62,7 +60,7 @@
      * 2.リフレッシュボタンをクリック時に`null`を流す。
      *   `null`を流す理由は、APIをコールしてレスポンスが返ってくるまでサジェスチョンエリアを非表示にしたいため。
      *   （表示制御は`renderSuggestion()`で行われる。）
-     * 
+     *
      * この Observable と `response$` に `startWith` を指定しているので
      * ボタンをクリックしなくても、初回だけ値が emit される（`combineLatest`以降も値が流れる）。
      * `response$`は COLD の Observable なため、生成した Observable の数だけ `response$`が複製される。
