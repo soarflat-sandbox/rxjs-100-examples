@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>10-3 retry Operator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      // retry Operator を利用するとストリームを最初から再試行できる。
+      // 引数がなければ無限に再試行され、引数が渡されると指定した回数だけ再試行される。
+      .retry(2)
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+    // 0
+    // 1
+    // 2
+    // 3
+    // 0
+    // 1
+    // 2
+    // 3
+    // 0
+    // 1
+    // 2
+    // 3
+    // Oops: too high!
+
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      // 以下の場合、再試行が1回失敗した後に catch 内の処理が実行される。
+      .retry(1)
+      .catch(error => Rx.Observable.of(777))
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+
+  </script>
+</body>
+
+</html>

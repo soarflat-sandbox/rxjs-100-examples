@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>10-4 retryWhen Operator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      // 再試行を遅延させる
+      // .retryWhen(error$ => error$.delay(500))
+      //
+      // 再試行の回数を指定するためには、scan Operator を利用して再試行回数を保持し
+      // 再試行回数が一定数を超えた場合にエラーを throw する。
+      // 以下の場合、再試行回数が4回目にエラーを throw する。
+      .retryWhen(error$ =>
+        error$.scan((count, currentError) => {
+          if (count > 2) {
+            throw currentError;
+          } else {
+            return count += 1;
+          }
+        }, 0)
+      )
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+  </script>
+</body>
+
+</html>

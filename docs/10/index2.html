@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>10-2 catch Operator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      // Observable が正常に完了しても、エラーが発生しても finally の処理は実行される。
+      .finally(() => console.log('Goodbye!'))
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+
+  </script>
+</body>
+
+</html>

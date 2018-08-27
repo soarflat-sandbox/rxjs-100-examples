@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>10</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          // throw すると Observable から error イベントが発火される
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+    // 0
+    // 1
+    // 2
+    // 3
+    // Oops: too high!
+
+    // `catch`Operatorを利用すれば、ストリーム内で発生したエラーを処理できる
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          // throw すると Observable から error イベントが発火される
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      // catch の処理の後に complete イベントが発火される
+      .catch(error => Rx.Observable.of(3))
+      //
+      // 以下の場合、空の Observable を返す
+      // .catch(error => Rx.Observable.empty())
+      //
+      // complete イベントを発火させたくない場合は`never`を利用する
+      // .catch(error => Rx.Observable.never())
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+    // 0
+    // 1
+    // 2
+    // 3
+    // 0
+    // 1
+    // 2
+    // 3
+    // 0
+    // 1
+    // 2
+    // 3
+    // ...
+
+    Rx.Observable
+      .interval(500)
+      .map(value => {
+        if (value > 3) {
+          throw new Error('too high!');
+        } else {
+          return value;
+        }
+      })
+      // catch の第2引数から Observable を取得できる。
+      // これを返すと ストリームを再試行する。
+      // ストリームが失敗し続けると、無限ループに陥るので注意。
+      .catch((error, source$) => source$)
+      .subscribe(
+        value => console.log(value),
+        err => console.error('Oops:', err.message),
+        () => console.log(`We're done here!`)
+      );
+    // 0
+    // 1
+    // 2
+    // 3
+    // Oops: too high!
+    // Goodbye!
+  </script>
+</body>
+
+</html>
