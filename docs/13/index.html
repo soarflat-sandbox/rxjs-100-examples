@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>13</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const source$ = Rx.Observable.interval(1000).take(5);
+
+    // ひとつの Observable と複数の Observer を中継する bridgeObserver
+    const bridgeObserver = {
+      next: (x) => bridgeObserver.observers.forEach(o => o.next(x)),
+      error: (err) => bridgeObserver.observers.forEach(o => o.error(err)),
+      complete: () => bridgeObserver.observers.forEach(o => o.complete()),
+      observers: [],
+      subscribe: (observer) => bridgeObserver.observers.push(observer)
+    };
+
+    source$.subscribe(bridgeObserver);
+
+    const observerA = {
+      next: (x) => console.log(`A next: ${x}`),
+      error: (err) => console.log(`A error: ${err}`),
+      complete: () => console.log(`A -------- complete --------`)
+    };
+
+    bridgeObserver.subscribe(observerA);
+
+    const observerB = {
+      next: (x) => console.log(`B next: ${x}`),
+      error: (err) => console.log(`B error: ${err}`),
+      complete: () => console.log(`B -------- complete --------`)
+    };
+
+    setTimeout(() => bridgeObserver.subscribe(observerB), 2000);
+    // A next: 0
+    // A next: 1
+    // B next: 1
+    // A next: 2
+    // B next: 2
+    // A next: 3
+    // B next: 3
+    // A next: 4
+    // B next: 4
+    // A--------complete --------
+    // B--------complete --------
+  </script>
+</body>
+
+</html>
