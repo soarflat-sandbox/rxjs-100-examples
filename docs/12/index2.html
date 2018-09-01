@@ -11,11 +11,11 @@
   <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
   <script>
-    function getData(data, ms = 0) {
+    // 一割の確率でエラーを返す非同期処理
+    function myPromise(data, ms) {
       const d = $.Deferred();
 
       setTimeout(() => {
-        console.log('getData');
         if (Math.random() > 0.1) {
           d.resolve(data);
         } else {
@@ -26,45 +26,27 @@
       return d;
     }
 
-    function getMultipleData(items) {
-      const d = $.Deferred();
+    const item = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }];
 
-      Rx.Observable
-        .of(items)
-        .flatMap(v => Rx.Observable.forkJoin(
-          v.map((v, index) => getData(v, index * 1000))
-          // エラーが発生しても error イベントは発火せず、エラーを含んだ全ての値が流したい場合は以下のように書く。
-          // v.map((v, index) => Rx.Observable
-          //   .fromPromise(getData(v, index * 1000))
-          //   .catch(error => Rx.Observable.of(error)))
-        ))
-        .subscribe(
-          v => d.resolve(v),
-          error => d.reject(error),
-          () => console.log('--- completed!!! ---')
-        );
-
-      return d;
-    }
-
-    function check(items) {
-      return getMultipleData(items).then(d => {
-        return d;
-      });
-    }
-
-    const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }];
-    check(items)
-      .then(
-        v => {
-          console.log('done');
-          console.log(v);
-        },
-        error => {
-          console.log('fail')
-          console.log(error);
-        },
+    // 非同期処理が全てを完了したら値を流す。
+    // エラーが発生した場合 error イベントは発火する。
+    // そのため、一つでもエラーが発生した場合、成功したデータは流れない。
+    Rx.Observable
+      .of(item)
+      .flatMap(v => Rx.Observable.forkJoin(
+        v.map((v, index) => myPromise(v, index * 1000))
+      ))
+      .subscribe(
+        v => console.log(v),
+        error => console.log(error),
+        () => console.log('--- completed!!! ---')
       );
+    // 全て非同期処理が成功した場合、以下の出力
+    // [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }];
+    // --- completed!!! ---
+    //
+    // エラーの場合は以下の出力
+    // "Error"
   </script>
 </body>
 

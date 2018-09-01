@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>12-3</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
+  <script>
+    function getData(data, ms = 0) {
+      const d = $.Deferred();
+
+      setTimeout(() => {
+        console.log('getData');
+        if (Math.random() > 0.1) {
+          d.resolve(data);
+        } else {
+          d.reject('Error');
+        }
+      }, ms);
+
+      return d;
+    }
+
+    function getMultipleData(items) {
+      return Rx.Observable
+        .of(items)
+        .flatMap(v => Rx.Observable.merge(
+          v.map((v, index) => getData(v, index * 1000))
+          // エラーが発生しても error イベントは発火せず、エラーを含んだ全ての値が流したい場合は以下のように書く。
+          // v.map((v, index) => Rx.Observable
+          //   .fromPromise(getData(v, index * 1000))
+          //   .catch(error => Rx.Observable.of(error)))
+        ))
+    }
+
+    function check(items) {
+      return getMultipleData(items).subscribe(
+        v => console.log(v),
+        error => console.error(error),
+        () => console.log('--- completed!!! ---')
+      );
+    }
+
+    const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }];
+    check(items);
+  </script>
+</body>
+
+</html>
