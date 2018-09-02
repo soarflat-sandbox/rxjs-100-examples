@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>12-6</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
+  <script>
+    // @description
+    // Subject を利用して非同期処理のストリームを途中で止める（onCompletedで完了させる）サンプル。
+
+    function myPromise(data) {
+      var d = $.Deferred();
+
+      $.ajax({ url: 'test.txt' })
+        .then(function (v) {
+          d.resolve({ type: data.type, v: v });
+        })
+        .then(function (error) {
+          d.reject(error);
+        });
+
+      return d;
+    }
+
+    const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }]
+
+    const subject = new Rx.Subject();
+    // 非同期処理が完了したものから値を流す。
+    const observable = Rx.Observable
+      .of(items)
+      .flatMap(v => Rx.Observable.merge(
+        v.map((v, index) => Rx.Observable
+          .timer(index * 1000)
+          .flatMap(() => Rx.Observable.fromPromise(myPromise(v))))
+      ));
+    const observer = {
+      onNext: v => console.log(`next:`, v),
+      onError: err => console.log(`error: ${err}`),
+      onCompleted: () => console.log(`-------- complete --------`)
+    };
+
+    subject.subscribe(observer);
+    observable.subscribe(subject);
+    setTimeout(() => {
+      // subject.onCompleted();
+      // onCompleted だと値は流れないが、内部の処理は実行されてしまうため、dispose（最新のバージョンだとunsbscribe）で
+      // 破棄をしたほうが良いと思ったが、「RxJS: Don’t Unsubscribe」（https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87）という記事を見つけてしまった。
+      subject.dispose();
+    }, 2800);
+    // 値が全て流れる前に dispose でリソースを破棄するため、以下の出力になる。
+    // next: { type: "A", v: "test!!↵" }
+    // next: { type: "B", v: "test!!↵" }
+    // next: { type: "C", v: "test!!↵" }
+    //
+    // このタイミングで dispose されるため、これ以降は何も出力されない
+  </script>
+</body>
+
+</html>
