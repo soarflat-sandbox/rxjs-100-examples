@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>13-5 ReplaySubject windowSize</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // 第二引数には windowSize という値を記憶しておく時間を指定できる。
+    // 以下の記述の場合、値が最新になってから2秒間、2つ前までの値を記憶する。
+    const subject = new Rx.ReplaySubject(2, 2000);
+
+    const observerA = {
+      next: (x) => console.log(`A next: ${x}`),
+      error: (err) => console.log(`A error: ${err}`),
+      complete: () => console.log(`A -------- complete --------`)
+    };
+
+    const observerB = {
+      next: (x) => console.log(`B next: ${x}`),
+      error: (err) => console.log(`B error: ${err}`),
+      complete: () => console.log(`B -------- complete --------`)
+    };
+
+    subject.subscribe(observerA);
+    console.log(`A -------- subscribed --------`);
+
+    setTimeout(() => subject.next(1), 500);
+    setTimeout(() => subject.next(2), 1000);
+    setTimeout(() => subject.next(3), 1500);
+    setTimeout(() => subject.complete(), 2000);
+
+    setTimeout(() => {
+      // subscribe したタイミングで値を記憶する時間（2秒）を過ぎているので、
+      // 値は何も流れない。
+      subject.subscribe(observerB);
+      console.log(`B -------- subscribed --------`);
+    }, 4000);
+    // "A -------- subscribed --------"
+    // "A next: 1"
+    // "A next: 2"
+    // "A next: 3"
+    // "A -------- complete --------"
+    // "B -------- complete --------"
+    // "B -------- subscribed --------"
+  </script>
+</body>
+
+</html>

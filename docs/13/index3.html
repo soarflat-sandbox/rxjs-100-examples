@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>13-3 BehaviorSubject</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // BehaviorSubject は初期値もしくは最新値を記憶し、子 Observer が subscribe したタイミング
+    // もしくは Subject が next() したタイミングで最新の値を流すイベントを発火する。
+    const subject = new Rx.BehaviorSubject(0);
+
+    const observerA = {
+      next: (x) => console.log(`A next: ${x}`),
+      error: (err) => console.log(`A error: ${err}`),
+      complete: () => console.log(`A -------- complete --------`)
+    };
+
+    const observerB = {
+      next: (x) => console.log(`B next: ${x}`),
+      error: (err) => console.log(`B error: ${err}`),
+      complete: () => console.log(`B -------- complete --------`)
+    };
+
+    subject.subscribe(observerA);
+    console.log(`A -------- subscribed --------`);
+
+    subject.next(1);
+    subject.next(2);
+    subject.next(3);
+
+    setTimeout(() => {
+      // subscribe したタイミングで最新の値を流すイベントを発火する。
+      subject.subscribe(observerB);
+      console.log(`B -------- subscribed --------`);
+    }, 2000);
+    // "A next: 0"
+    // "A -------- subscribed --------"
+    // "A next: 1"
+    // "A next: 2"
+    // "A next: 3"
+    // "B next: 3"
+    // "B -------- subscribed --------"
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>13-2 Subject</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    const subject = new Rx.Subject();
+
+    const observerA = {
+      next: (x) => console.log(`A next: ${x}`),
+      error: (err) => console.log(`A error: ${err}`),
+      complete: () => console.log(`A -------- complete --------`)
+    };
+
+    const observerB = {
+      next: (x) => console.log(`B next: ${x}`),
+      error: (err) => console.log(`B error: ${err}`),
+      complete: () => console.log(`B -------- complete --------`)
+    };
+
+    subject.subscribe(observerA);
+
+    // Subject は Observable の有無に関係なく next(), error(), complete()を明示的に呼び出せる。
+    // そのため、任意のタイミングでイベントを発火できる。つまり、任意のタイミングで値を流せる。
+    subject.next(1);
+    subject.next(2);
+    subject.next(3);
+    subject.complete();
+
+    setTimeout(() => subject.subscribe(observerB), 2000);
+    // "A next: 1"
+    // "A next: 2"
+    // "A next: 3"
+    // "A -------- complete --------"
+    // "B -------- complete --------"
+  </script>
+</body>
+
+</html>

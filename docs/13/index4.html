@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>13-4 ReplaySubject</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // BehaviorSubject は初期値もしくは最新値だけを記憶できたが、
+    // ReplaySubject は過去に流された全ての値、もしくは任意の前までの値を記憶して流せる。
+    // 今回は引数 2 を指定しているため、2つ前までの値を流せる。
+    const subject = new Rx.ReplaySubject(2);
+
+    const observerA = {
+      next: (x) => console.log(`A next: ${x}`),
+      error: (err) => console.log(`A error: ${err}`),
+      complete: () => console.log(`A -------- complete --------`)
+    };
+
+    const observerB = {
+      next: (x) => console.log(`B next: ${x}`),
+      error: (err) => console.log(`B error: ${err}`),
+      complete: () => console.log(`B -------- complete --------`)
+    };
+
+    subject.subscribe(observerA);
+    console.log(`A -------- subscribed --------`);
+
+    setTimeout(() => subject.next(1), 500);
+    setTimeout(() => subject.next(2), 1000);
+    setTimeout(() => subject.next(3), 1500);
+    setTimeout(() => subject.complete(), 2000);
+
+    setTimeout(() => {
+      // subscribe したタイミングで2つ前までの値を流すイベントが発火する。
+      // 今回の場合、observerB にも 2 と 3 が流れる。
+      subject.subscribe(observerB);
+      console.log(`B -------- subscribed --------`);
+    }, 4000);
+    // "A -------- subscribed --------"
+    // "A next: 1"
+    // "A next: 2"
+    // "A next: 3"
+    // "A -------- complete --------"
+    // "B next: 2"
+    // "B next: 3"
+    // "B -------- complete --------"
+    // "B -------- subscribed --------"
+  </script>
+</body>
+
+</html>

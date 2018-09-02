@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>13-6 AsyncSubject</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+  <script>
+    // AsyncSubject は最後の値のみ記憶し complete() を呼びだすとその値を流す。
+    const subject = new Rx.AsyncSubject();
+
+    const observerA = {
+      next: (x) => console.log(`A next: ${x}`),
+      error: (err) => console.log(`A error: ${err}`),
+      complete: () => console.log(`A -------- complete --------`)
+    };
+
+    const observerB = {
+      next: (x) => console.log(`B next: ${x}`),
+      error: (err) => console.log(`B error: ${err}`),
+      complete: () => console.log(`B -------- complete --------`)
+    };
+
+    subject.subscribe(observerA);
+    console.log(`A -------- subscribed --------`);
+
+    setTimeout(() => subject.next(1), 500); // この値は流れない
+    setTimeout(() => subject.next(2), 1000); // この値は流れない
+    setTimeout(() => subject.next(3), 1500); // complete() を呼び出した時点で、この値が最後の値のため、この値が流れる。
+    setTimeout(() => subject.complete(), 2000);
+
+    setTimeout(() => {
+      subject.subscribe(observerB);
+      console.log(`B -------- subscribed --------`);
+    }, 4000);
+    // "A -------- subscribed --------"
+    // "A next: 3"
+    // "A -------- complete --------"
+    // "B next: 3"
+    // "B -------- complete --------"
+    // "B -------- subscribed --------"
+  </script>
+</body>
+
+</html>
