@@ -26,7 +26,7 @@
       return d;
     }
 
-    function getMultipleData(items) {
+    function getObservableThatEmitDataAsynchronously(items) {
       return Rx.Observable
         .of(items)
         .flatMap(v => Rx.Observable.merge(
@@ -39,7 +39,7 @@
     }
 
     function check(items) {
-      return getMultipleData(items).subscribe(
+      return getObservableThatEmitDataAsynchronously(items).subscribe(
         v => console.log(v),
         error => console.error(error),
         () => console.log('--- completed!!! ---')

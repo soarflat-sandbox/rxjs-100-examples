@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>12-5</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
+  <script>
+    // @description
+    // Subject を利用して非同期処理のストリームを途中で止める（onCompletedで完了させる）サンプル。
+
+    // 一割の確率でエラーを返す非同期処理
+    function myPromise(data, ms) {
+      const d = $.Deferred();
+
+      setTimeout(() => {
+        if (Math.random() > 0.1) {
+          d.resolve(data);
+        } else {
+          d.reject('Error');
+        }
+      }, ms);
+
+      return d;
+    }
+
+    const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }];
+
+    const subject = new Rx.Subject();
+    // 非同期処理が完了したものから値を流す。
+    // エラーが発生した場合 error イベントを発火して、それ以降値は流れない。
+    const observable = Rx.Observable
+      .of(items)
+      .flatMap(v => Rx.Observable.merge(
+        v.map((v, index) => myPromise(v, index * 1000))
+      ));
+    const observer = {
+      onNext: v => console.log(`next:`, v),
+      onError: err => console.log(`error: ${err}`),
+      onCompleted: () => console.log(`-------- complete --------`)
+    };
+
+    subject.subscribe(observer);
+    observable.subscribe(subject);
+    setTimeout(() => subject.onCompleted(), 2800);
+    // 値が全て流れる前に onCompleted が発火するので全て非同期処理が成功した場合、以下の出力になる。
+    // next: { type: "A" }
+    // next: { type: "B" }
+    // next: { type: "C" }
+    // -------- complete --------
+  </script>
+</body>
+
+</html>
