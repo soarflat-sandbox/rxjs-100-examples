@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>12-7</title>
+</head>
+
+<body>
+  <p>open console!!</p>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
+  <script>
+    let xhrPool = [];
+
+    function myPromise(data) {
+      console.log('run myPromise', data)
+      var request = $.ajax({
+        url: 'test.txt',
+      })
+        .done(function () {
+          console.log('done', data);
+        })
+        .fail(function (error) {
+          if (error.statusText === 'abort') {
+            console.log('abort', data);
+          }
+        });
+
+      xhrPool.push(request);
+
+      return request;
+    }
+
+    const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }]
+
+    const subject = new Rx.Subject();
+
+    // 非同期処理が完了したものから値を流す。
+    const observable = Rx.Observable
+      .of(items)
+      .flatMap(v => Rx.Observable.merge(
+        v.map((v, index) => Rx.Observable
+          .timer(index * 1000)
+          .flatMap(() => Rx.Observable
+            .fromPromise(myPromise(v, index * 1000))
+          ))
+      ));
+
+    const observer = {
+      onNext: v => console.log(`next:`, v),
+      onError: error => console.log(`error: ${error.statusText}`),
+      onCompleted: () => console.log(`-------- complete --------`)
+    };
+
+    subject.subscribe(observer);
+    observable.subscribe(subject);
+
+    setTimeout(() => {
+      // abort() すれば observable で error イベントが発火されるため、値も流れない。
+      // つまり timer() 以降の時間差の処理も実行されないため、subject.dispose() する必要もない。
+      xhrPool.forEach(xhr => xhr.abort());
+    }, 2200);
+    // 出力は以下の通り。
+    // run myPromise { type: "A" }
+    // run myPromise { type: "B" }
+    // run myPromise { type: "C" }
+    // done { type: "A" }
+    // next: test!!
+    // abort { type: "B" }
+    // error: abort
+    // abort { type: "C" }
+  </script>
+</body>
+
+</html>

@@ -11,14 +11,16 @@
   <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/3.1.2/rx.all.min.js"></script>
   <script>
-    // @description
-    // Subject を利用して非同期処理のストリームを途中で止める（onCompletedで完了させる）サンプル。
+    // subject.dispose で Observer を unsubscribe しているサンプル。
+    // unsubscribe しただけなので、値は流れないが裏側で処理は走ってしまっている。
 
     function myPromise(data) {
+      console.log('run myPromise', data);
       var d = $.Deferred();
 
       $.ajax({ url: 'test.txt' })
         .then(function (v) {
+          console.log('resolve', data);
           d.resolve({ type: data.type, v: v });
         })
         .then(function (error) {
@@ -51,14 +53,11 @@
       // subject.onCompleted();
       // onCompleted だと値は流れないが、内部の処理は実行されてしまうため、dispose（最新のバージョンだとunsbscribe）で
       // 破棄をしたほうが良いと思ったが、「RxJS: Don’t Unsubscribe」（https://medium.com/@benlesh/rxjs-dont-unsubscribe-6753ed4fda87）という記事を見つけてしまった。
+      // HACK:
+      //  console を見ればわかるが、observer に値が流れていないだけで、処理もAjax通信も実行されてしまっている駄目なコードである（本来はこれらのプロセスも破棄させたい）。
+      //  修正版は index7.html
       subject.dispose();
     }, 2800);
-    // 値が全て流れる前に dispose でリソースを破棄するため、以下の出力になる。
-    // next: { type: "A", v: "test!!↵" }
-    // next: { type: "B", v: "test!!↵" }
-    // next: { type: "C", v: "test!!↵" }
-    //
-    // このタイミングで dispose されるため、これ以降は何も出力されない
   </script>
 </body>
 
