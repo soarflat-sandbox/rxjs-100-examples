@@ -35,6 +35,7 @@
     const items = [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }, { type: 'F' }]
 
     const subject = new Rx.Subject();
+    const subject2 = new Rx.Subject();
 
     // 非同期処理が完了したものから値を流す。
     const observable = Rx.Observable
@@ -42,10 +43,12 @@
       .flatMap(v => Rx.Observable.merge(
         v.map((v, index) => Rx.Observable
           .timer(index * 1000)
+          .takeUntil(subject2)
           .flatMap(() => Rx.Observable
             .fromPromise(myPromise(v, index * 1000))
           ))
-      ));
+      )
+      .finally(() => console.log('cleaning up')));
 
     const observer = {
       onNext: v => console.log(`next:`, v),
@@ -58,8 +61,13 @@
 
     setTimeout(() => {
       // abort() すれば observable で error イベントが発火されるため、値も流れない。
-      // つまり timer() 以降の時間差の処理も実行されないため、subject.dispose() する必要もない。
+      // ~~つまり timer() 以降の時間差の処理も実行されないため、subject.dispose() する必要もない。~~
+      // ↑は大嘘だった。通信中に abort() しなければ error イベントが発火しないので、値が流れてしまうことがある。
+      // 結局 takeUntil で解決。 subject.dispose() も一応。
+      console.log(xhrPool);
       xhrPool.forEach(xhr => xhr.abort());
+      subject2.onNext();
+      subject.dispose();
     }, 2200);
     // 出力は以下の通り。
     // run myPromise { type: "A" }
