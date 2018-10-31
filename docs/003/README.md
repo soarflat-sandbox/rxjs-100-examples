@@ -1,0 +1,90 @@
+# 003
+
+input イベントを Observable に変換し、様々なオペレーターを実行しているサンプルコード。
+
+## サンプル
+
+### サンプル 1
+
+[Demo](index.html)
+
+利用しているオペレーター
+
+- Observable.fromEvent
+- Observable.filter
+- Observable.map
+- Observable.delay
+- Observable.throttleTime
+- Observable.debounceTime
+- Observable.take
+- Observable.takeUntil
+
+```html
+<p>入力した文字数が3文字以上の場合、入力されている文字をコンソール出力する</p>
+<input type="text" id="input">
+<p>入力をしてから1秒後に入力されている文字をコンソール出力する</p>
+<input type="text" id="input2">
+<p>入力をしてから500ms秒間隔で、その時点で入力されている文字をコンソール出力する</p>
+<input type="text" id="input3">
+<p>入力をしてから500ms秒間入力がなければ、その時点で入力されている文字をコンソール出力する</p>
+<input type="text" id="input4">
+<p>3文字入力するまで、入力されている文字をコンソール出力する</p>
+<input type="text" id="input5">
+<p>「stopStream」をクリックするまで、入力した文字をコンソール出力する</p>
+<input type="text" id="input6">
+<button id="stopStream">stopStream</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+<script>
+  // inputイベントをObservableに変換する
+  const input$ = Rx.Observable
+    .fromEvent(document.getElementById('input'), 'input');
+  const input2$ = Rx.Observable
+    .fromEvent(document.getElementById('input2'), 'input');
+  const input3$ = Rx.Observable
+    .fromEvent(document.getElementById('input3'), 'input');
+  const input4$ = Rx.Observable
+    .fromEvent(document.getElementById('input4'), 'input');
+  const input5$ = Rx.Observable
+    .fromEvent(document.getElementById('input5'), 'input');
+  const input6$ = Rx.Observable
+    .fromEvent(document.getElementById('input6'), 'input');
+
+  // 入力した文字数が3文字以上の場合、入力されている値を流す
+  input$
+    .filter(e => e.target.value.length > 2)
+    .map(e => e.target.value)
+    .subscribe(value => console.log('input:', value));
+
+  // 入力をしてから1秒後に入力されている値を流す
+  input2$
+    .delay(1000)
+    .map(e => e.target.value)
+    .subscribe(value => console.log('input2:', value));
+
+  // 入力をしてから500ms秒間隔で、その時点で入力されている値を流す
+  input3$
+    .throttleTime(500)
+    .map(e => e.target.value)
+    .subscribe(value => console.log('input3:', value))
+
+  // 入力をしてから500ms秒間入力がなけれで、その時点で入力されている値を流す
+  // 500ms秒以内に連続で入力している限り、値は流れない
+  input4$
+    .debounceTime(500)
+    .map(e => e.target.value)
+    .subscribe(value => console.log('input4:', value));
+
+  // 入力を3回するまで値を流す
+  input5$
+    .take(3)
+    .map(e => e.target.value)
+    .subscribe(value => console.log('input5: ', value));
+
+  const stop$ = Rx.Observable
+    .fromEvent(document.getElementById('stopStream'), 'click');
+  input6$
+    .takeUntil(stop$)
+    .map(e => e.target.value)
+    .subscribe(value => console.log('input6:', value));
+</script>
+```
