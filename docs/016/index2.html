@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>016-2</title>
+  </head>
+
+  <body>
+    <select>
+      <option selected hidden> -- select ID -- </option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+
+    <div id="result"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+    <script>
+      const select = document.querySelector('select');
+      const result = document.getElementById('result');
+
+      const id$ = Rx.Observable.fromEvent(select, 'change').map(e => e.target.value);
+
+      const fetchPost = id => {
+        const url = `https://jsonplaceholder.typicode.com/posts/${id}`;
+        return Rx.Observable.ajax(url).map(res => res.response);
+      };
+
+      const render = post => {
+        result.innerHTML = post.title;
+      };
+
+      id$.switchMap(fetchPost).subscribe(render);
+    </script>
+  </body>
+</html>

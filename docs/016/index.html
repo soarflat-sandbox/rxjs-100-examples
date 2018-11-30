@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>016</title>
+  </head>
+
+  <body>
+    <select>
+      <option selected hidden> -- select ID -- </option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+
+    <div id="result"></div>
+
+    <script>
+      let controller;
+      let isLoading = false;
+
+      const select = document.querySelector('select');
+      const result = document.getElementById('result');
+
+      const render = post => {
+        result.innerHTML = post.title;
+      };
+
+      select.addEventListener('change', e => {
+        if (isLoading) {
+          isLoading = false;
+          controller.abort();
+        }
+
+        controller = new AbortController();
+        const signal = controller.signal;
+        isLoading = true;
+
+        fetch(`https://jsonplaceholder.typicode.com/posts/${e.target.value}`, { signal })
+          .then(response => response.json())
+          .then(json => {
+            isLoading = false;
+            render(json);
+          });
+      });
+    </script>
+  </body>
+</html>
