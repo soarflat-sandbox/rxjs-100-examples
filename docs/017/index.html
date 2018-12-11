@@ -12,9 +12,6 @@
     <p><span id="price"></span>円</p>
 
     <script>
-      let price = 0;
-      let tax = 0;
-
       const priceInputEl = document.getElementById('priceInput');
       const taxInputEl = document.getElementById('taxInput');
       const priceEl = document.getElementById('price');
@@ -23,6 +20,9 @@
       const renderPrice = price => {
         priceEl.innerText = price;
       };
+
+      let price = 0;
+      let tax = 0;
 
       priceInputEl.addEventListener('input', e => {
         price = Number(e.target.value);

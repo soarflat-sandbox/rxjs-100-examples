@@ -13,13 +13,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
     <script>
-      const price$ = Rx.Observable.fromEvent(document.getElementById('priceInput'), 'input').map(
-        e => Number(e.target.value)
-      );
-      const tax$ = Rx.Observable.fromEvent(document.getElementById('taxInput'), 'input').map(e =>
-        Number(e.target.value)
-      );
-
       const priceEl = document.getElementById('price');
 
       const addTax = ([price, tax]) => Math.round((price * (100 + tax)) / 100);
@@ -27,9 +20,15 @@
         priceEl.innerText = price;
       };
 
-      Rx.Observable.combineLatest(price$, tax$)
-        .map(addTax)
-        .subscribe(renderPrice);
+      const price$ = Rx.Observable.fromEvent(document.getElementById('priceInput'), 'input').map(
+        e => Number(e.target.value)
+      );
+      const tax$ = Rx.Observable.fromEvent(document.getElementById('taxInput'), 'input').map(e =>
+        Number(e.target.value)
+      );
+      const priceAddedTax$ = Rx.Observable.combineLatest(price$, tax$).map(addTax);
+
+      priceAddedTax$.startWith(0).subscribe(renderPrice);
     </script>
   </body>
 </html>
