@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>017</title>
+  </head>
+
+  <body>
+    <label for="price">価格</label> <input id="priceInput" type="number" />
+    <label for="tax">消費税（%）</label><input id="taxInput" type="number" />
+
+    <p><span id="price"></span>円</p>
+
+    <script>
+      let price = 0;
+      let tax = 0;
+
+      const priceInputEl = document.getElementById('priceInput');
+      const taxInputEl = document.getElementById('taxInput');
+      const priceEl = document.getElementById('price');
+
+      const addTax = (price, tax) => Math.round((price * (100 + tax)) / 100);
+      const renderPrice = price => {
+        priceEl.innerText = price;
+      };
+
+      priceInputEl.addEventListener('input', e => {
+        price = Number(e.target.value);
+        renderPrice(addTax(price, tax));
+      });
+
+      taxInputEl.addEventListener('input', e => {
+        tax = Number(e.target.value);
+        renderPrice(addTax(price, tax));
+      });
+    </script>
+  </body>
+</html>
