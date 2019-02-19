@@ -12,24 +12,20 @@
     <p><span id="price"></span>円</p>
 
     <script>
-      const priceInputEl = document.getElementById('priceInput');
-      const taxInputEl = document.getElementById('taxInput');
-      const priceEl = document.getElementById('price');
-
       const addTax = (price, tax) => Math.round((price * (100 + tax)) / 100);
-      const renderPrice = price => {
+      const renderPrice = (priceEl => price => {
         priceEl.innerText = price;
-      };
+      })(document.getElementById('price'));
 
       let price = 0;
       let tax = 0;
 
-      priceInputEl.addEventListener('input', e => {
+      document.getElementById('priceInput').addEventListener('input', e => {
         price = Number(e.target.value);
         renderPrice(addTax(price, tax));
       });
 
-      taxInputEl.addEventListener('input', e => {
+      document.getElementById('taxInput').addEventListener('input', e => {
         tax = Number(e.target.value);
         renderPrice(addTax(price, tax));
       });

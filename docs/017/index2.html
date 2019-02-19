@@ -13,12 +13,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
     <script>
-      const priceEl = document.getElementById('price');
-
       const addTax = ([price, tax]) => Math.round((price * (100 + tax)) / 100);
-      const renderPrice = price => {
+      const renderPrice = (priceEl => price => {
         priceEl.innerText = price;
-      };
+      })(document.getElementById('price'));
 
       const price$ = Rx.Observable.fromEvent(document.getElementById('priceInput'), 'input').map(
         e => Number(e.target.value)
