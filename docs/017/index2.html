@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>017-2</title>
+  </head>
+
+  <body>
+    <label for="price">価格</label> <input id="priceInput" type="number" />
+    <label for="tax">消費税（%）</label><input id="taxInput" type="number" />
+
+    <p><span id="price"></span>円</p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
+    <script>
+      const priceEl = document.getElementById('price');
+
+      const addTax = ([price, tax]) => Math.round((price * (100 + tax)) / 100);
+      const renderPrice = price => {
+        priceEl.innerText = price;
+      };
+
+      const price$ = Rx.Observable.fromEvent(document.getElementById('priceInput'), 'input').map(
+        e => Number(e.target.value)
+      );
+      const tax$ = Rx.Observable.fromEvent(document.getElementById('taxInput'), 'input').map(e =>
+        Number(e.target.value)
+      );
+      const priceAddedTax$ = Rx.Observable.combineLatest(price$, tax$).map(addTax);
+
+      priceAddedTax$.startWith(0).subscribe(renderPrice);
+    </script>
+  </body>
+</html>
