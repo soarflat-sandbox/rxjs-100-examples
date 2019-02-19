@@ -6,6 +6,8 @@
   </head>
 
   <body>
+    <h1>Fetch APIを利用したサンプル</h1>
+    <p>通信中に別の項目を選択すると、`controller.abort()`で通信が中断され、新たな通信が始まる。</p>
     <select>
       <option selected hidden> -- select ID -- </option>
       <option value="1">1</option>
@@ -17,29 +19,26 @@
 
     <script>
       let controller;
-      let isLoading = false;
+      let isFetching = false;
 
-      const select = document.querySelector('select');
-      const result = document.getElementById('result');
-
-      const render = post => {
+      const render = (result => post => {
         result.innerHTML = post.title;
-      };
+      })(document.getElementById('result'));
 
-      select.addEventListener('change', e => {
-        if (isLoading) {
-          isLoading = false;
+      document.querySelector('select').addEventListener('change', e => {
+        if (isFetching) {
+          isFetching = false;
           controller.abort();
         }
 
         controller = new AbortController();
         const signal = controller.signal;
-        isLoading = true;
+        isFetching = true;
 
         fetch(`https://jsonplaceholder.typicode.com/posts/${e.target.value}`, { signal })
           .then(response => response.json())
           .then(json => {
-            isLoading = false;
+            isFetching = false;
             render(json);
           });
       });

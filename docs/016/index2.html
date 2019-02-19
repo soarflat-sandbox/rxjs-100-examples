@@ -6,6 +6,8 @@
   </head>
 
   <body>
+    <h1>RxJSを利用したサンプル</h1>
+    <p>通信中に別の項目を選択すると、`switchMap`で通信が中断され、新たな通信が始まる。</p>
     <select>
       <option selected hidden> -- select ID -- </option>
       <option value="1">1</option>
@@ -17,19 +19,18 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.5.10/Rx.min.js"></script>
     <script>
-      const select = document.querySelector('select');
-      const result = document.getElementById('result');
+      const id$ = Rx.Observable.fromEvent(document.querySelector('select'), 'change').map(
+        e => e.target.value
+      );
 
-      const id$ = Rx.Observable.fromEvent(select, 'change').map(e => e.target.value);
+      const fetchPost = id =>
+        Rx.Observable.ajax(`https://jsonplaceholder.typicode.com/posts/${id}`).map(
+          res => res.response
+        );
 
-      const fetchPost = id => {
-        const url = `https://jsonplaceholder.typicode.com/posts/${id}`;
-        return Rx.Observable.ajax(url).map(res => res.response);
-      };
-
-      const render = post => {
+      const render = (result => post => {
         result.innerHTML = post.title;
-      };
+      })(document.getElementById('result'));
 
       id$.switchMap(fetchPost).subscribe(render);
     </script>

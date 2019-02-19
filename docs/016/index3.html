@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>016-3</title>
+  </head>
+
+  <body>
+    <h1>XMLHttpRequestを利用したサンプル</h1>
+    <p>通信中に別の項目を選択すると、`request.abort()`で通信が中断され、新たな通信が始まる。</p>
+    <select>
+      <option selected hidden> -- select ID -- </option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+
+    <div id="result"></div>
+
+    <script>
+      let request;
+      let isFetching = false;
+
+      const render = (result => post => {
+        result.innerHTML = post.title;
+      })(document.getElementById('result'));
+
+      const fetchPost = id =>
+        new Promise(resolve => {
+          request = new XMLHttpRequest();
+          request.responseType = 'json';
+          request.open('GET', `https://jsonplaceholder.typicode.com/posts/${id}`, true);
+          request.onload = () => {
+            if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+              resolve(request.response);
+            }
+          };
+          request.send(null);
+        });
+
+      document.querySelector('select').addEventListener('change', e => {
+        if (isFetching) {
+          request.abort();
+        } else {
+          isFetching = true;
+        }
+
+        fetchPost(e.target.value).then(res => {
+          isFetching = false;
+          render(res);
+        });
+      });
+    </script>
+  </body>
+</html>

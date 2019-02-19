@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>016-4</title>
+  </head>
+
+  <body>
+    <h1>axiosを利用したサンプル</h1>
+    <p>通信中に別の項目を選択すると、`cancel()`で通信が中断され、新たな通信が始まる。</p>
+    <select>
+      <option selected hidden> -- select ID -- </option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+
+    <div id="result"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <script>
+      const CancelToken = axios.CancelToken;
+      let cancel;
+      let isFetching = false;
+
+      const render = (result => post => {
+        result.innerHTML = post.title;
+      })(document.getElementById('result'));
+
+      const fetchPost = id => {
+        return new Promise(resolve => {
+          axios
+            .get(`https://jsonplaceholder.typicode.com/posts/${id}`, {
+              cancelToken: new CancelToken(c => {
+                cancel = c;
+              })
+            })
+            .then(response => {
+              resolve(response.data);
+            });
+        });
+      };
+
+      document.querySelector('select').addEventListener('change', e => {
+        if (isFetching) {
+          cancel();
+        } else {
+          isFetching = true;
+        }
+
+        fetchPost(e.target.value).then(res => {
+          isFetching = false;
+          render(res);
+        });
+      });
+    </script>
+  </body>
+</html>
